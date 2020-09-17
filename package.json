@@ -1,8 +1,0 @@
-{
-  "name": "JSPractice",
-  "version": "1.0.0",
-  "dependencies": {
-    "easystarjs": "^0.4.3",
-    "lodash": "^4.17.20"
-  }
-}
