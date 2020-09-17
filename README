@@ -1,1 +1,5 @@
-requires easystar
+requires: 
+https://github.com/jbrown123/PathFinding.js/
+lodash
+
+just npm install them in terminal
