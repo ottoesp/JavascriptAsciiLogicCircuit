@@ -1,4 +1,3 @@
-const isIn = require("./isIn")
 createObjectsFromInpLocal = function (inp, elements) { // Parsing
     if (inp.length < 1) {
         throw "NO INPUT"
@@ -30,7 +29,7 @@ createObjectsFromInpLocal = function (inp, elements) { // Parsing
         throw "NO GATES"
     }
     elements.type = elements.type[0]
-    if (isIn.isIn(elements.type, ["AND", "NOR", "XOR", "XNOR"])) { // "NAND", "OR",
+    if (["AND", "NOR", "XOR", "XNOR"].includes(elements.type)) { // "NAND", "OR",
         elements.type = "╢".concat(elements.type.concat("-║"))
     } else if (elements.type === "NAND"){
         elements.type = "╢".concat(elements.type.concat("║"))
