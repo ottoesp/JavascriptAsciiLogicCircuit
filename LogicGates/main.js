@@ -2,7 +2,6 @@ const cloneDeep = require('lodash.clonedeep');
 const PF = require('pathfinding');
 const render = require("./rendering/render")
 const comp = require("./inputComprehension")
-const isIn = require("./isIn")
 
 var placedNotVars = []
 var placedPaths = []
@@ -57,7 +56,7 @@ function LogicGate(x, y, type, inputs, _parent) {
   this.draw = function (board) {
     for (let i = 0; i < this.inputs.length; i++) {
       if (this.type === "NOT") {
-        if (!isIn.isIn(this.inputs[i].type, placedNotVars)) {
+        if (!placedNotVars.includes(this.inputs[i].type)) {
           let o = findPath(board, this.inputsPos[i].x, this.inputsPos[i].y,
             this.inputs[i].outputPos.x, this.inputs[i].outputPos.y, this)
           this.p = o[0]
@@ -96,16 +95,16 @@ function convertBoardToGrid(board, sharedPath) {
     for (let x = 0; x < b[y].length; x++) {
       if (b[y][x] === " ") {
         b[y][x] = 0;
-      } else if (isIn.isIn(b[y][x], ['─', '│'])) {
+      } else if (['─', '│'].includes(b[y][x])) {
         b[y][x] = 1;
-      } else if (isIn.isIn(b[y][x], ['┘', '┐', '┌', '└', '┤', '┴', '┬', '├'])) {
+      } else if (['┘', '┐', '┌', '└', '┤', '┴', '┬', '├'].includes(b[y][x])) {
         b[y][x] = 4;
       }
-      if (isIn.isIn(b[y][x], ["║", "-", "╢"]) || /^[A-Z]+$/.test(b[y][x])) {
+      if (["║", "-", "╢"].includes(b[y][x]) || /^[A-Z]+$/.test(b[y][x])) {
         b[y][x] = 2;
-      } else if (b[y][x + 1] && (isIn.isIn(b[y][x + 1], ["╢"])) || /^[A-Z]+$/.test(b[y][x + 1])) {
+      } else if (b[y][x + 1] && (["╢"].includes(b[y][x + 1])) || /^[A-Z]+$/.test(b[y][x + 1])) {
         b[y][x] = 5;
-      } else if (board[y][x - 1] && (isIn.isIn(board[y][x - 1], ["║", "-", "╢"]) && board[y - 1][x - 1] === " ") || /^[A-Z]+$/.test(board[y][x - 1])) {
+      } else if (board[y][x - 1] && (["║", "-", "╢"].includes(board[y][x - 1]) && board[y - 1][x - 1] === " ") || /^[A-Z]+$/.test(board[y][x - 1])) {
         b[y][x] = 5;
       } else {
         for (let i = 0; i < sharedPath.length; i++) {
@@ -225,7 +224,7 @@ function assignYValuesBasObj(basObj) {
 
 function yValRecur(basObj, depthGroupSizes, depth) {
   if (basObj.type.length === 1) {
-    if (!isIn.isIn(basObj.type, doneVariables)) {
+    if (!doneVariables.includes(basObj.type)) {
       doneVariables.push(basObj.type)
       variablesSpace.push(variablesSpace[variablesSpace.length - 1] + 3)
       basObj.y = variablesSpace[doneVariables.indexOf(basObj.type)]
@@ -286,7 +285,7 @@ function boardToString(board, LG, inp) {
     if (blankLineTest.size > 1) {     // Will only not be greater that 1 if there are only spaces
       for (let j = 0; j < board[i].length; j++) {
         if (board[i][j] === " ") {
-          output += "&nbsp"
+          output += " "
         } else {
           output += board[i][j]
         }
