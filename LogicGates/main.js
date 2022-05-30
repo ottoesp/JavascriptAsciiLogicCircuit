@@ -1,10 +1,4 @@
 const {
-    log
-} = require('console');
-const {
-    cp
-} = require('fs');
-const {
     max,
     nth,
     fill,
@@ -12,6 +6,7 @@ const {
 } = require('lodash');
 const PF = require('./PathFindingJS/src/PathFinding');
 
+const Render = require('./render')
 
 var HORZ_SPACING;
 var VERT_SPACING;
@@ -24,6 +19,8 @@ const GATE_STRING_CHARACTERS = {
     filler: '-'
 }
 
+const ALPHABET = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
+
 const LogicGateFactory = function () {
     let maxDepth = 0;
     let maxX = 0;
@@ -31,7 +28,8 @@ const LogicGateFactory = function () {
     const abstractPositioning = [];
 
     const finder = new PF.AStarFinder({
-        heuristic: PF.Heuristic.manhattan
+        // heuristic: PF.Heuristic.manhattan
+        heuristic: PF.Heuristic.manhattan,
     })
 
     return (_depth) => {
@@ -125,7 +123,7 @@ const LogicGateFactory = function () {
                 // is otherwise a variable
                 coordinates.x = 0;
             },
-            generateYValue: () => {
+            generateYValue: () => { // run seperate thing getting abstract pos so that we can do the centring in one place
                 if (isVariable) {
                     if (Object.keys(placedVars).includes(symbol)) {
                         coordinates.y = placedVars[symbol].y
@@ -147,11 +145,10 @@ const LogicGateFactory = function () {
                 const widestDepthSize = max(abstractPositioning);
                 const depthSize = abstractPositioning[depth];
                 if (isVariable) {
-                    if (placedVars[symbol].centred !== undefined) {
-                        coordinates.y = placedVars[symbol].centred;
-                    } else {
-                        placedVars[symbol].centred = Math.floor(((widestDepthSize - depthSize) / 2) * VERT_SPACING);
+                    if (placedVars[symbol].centred === undefined) { // BREAKPOINT
+                        placedVars[symbol].centred = coordinates.y + Math.floor(((widestDepthSize - depthSize) / 2) * VERT_SPACING);
                     }
+                    coordinates.y = placedVars[symbol].centred;
                     return
                 }
                 // console.log(`symbol: ${symbol}, ${coordinates.y}, ${Math.floor(((widestDepthSize - depthSize) / 2) * VERT_SPACING)}`)
@@ -187,36 +184,35 @@ const LogicGateFactory = function () {
             getIsVariable: () => {
                 return isVariable;
             },
-            
-            getPathsToChildren: (PFGrid) => {
-                let paths = [];
-                for (let i = 0; i < children.length; i++) {
-                    let g = PFGrid.clone(); // bug in library where grids are altered after use.
-                    const child = children[i];
-                    let childOutput = child.getOutput();
-                    let input = {
-                        x: coordinates.x - 1,
-                        y: coordinates.y + i
-                    }
-                    let _path = finder.findPath(input.x, input.y, childOutput.x, childOutput.y, g);
-                    paths.push({path : _path, isVariable : child.getIsVariable(), symbol : child.getSymbol()});
+
+            getPathsToChildren: (PFGrid, child, i) => { 
+                let childOutput = child.getOutput();
+                let input = {
+                    x: coordinates.x - 1,
+                    y: coordinates.y + i
                 }
-                return paths;
+                const grid = PFGrid(child.getSymbol(), child.getIsVariable());
+
+                const path = finder.findPath(input.x, input.y, childOutput.x, childOutput.y, grid);
+                return {
+                    path: path,
+                    isVariable: child.getIsVariable(),
+                    symbol: child.getSymbol()
+                };
             }
         };
     };
 }
-const LogicGate = LogicGateFactory();
 
 const GridFactory = function () {
-    const PATH_CORNER_WEIGHT = 5;
-    const PATH_WEIGHT = 3;
-    const SHARED_PATH_WEIGHT = 0;
+    const PATH_CORNER_WEIGHT = 10;
+    const PATH_WEIGHT = 4;
+    const SHARED_PATH_WEIGHT = 1;
 
     return (logicTree, initialisedValue = ' ') => {
-        const nOfRows = (max(logicTree.getAbstractPositioning()) + 1) * VERT_SPACING;
+        const nOfRows = (max(logicTree.getAbstractPositioning())) * (VERT_SPACING - 1) + 1;
         const nOfColumns = logicTree.getMaxX() + GATE_WIDTH;
-        let pathsToVars = {};
+        const pathsToVars = {};
 
         let grid = [...Array(nOfRows)].map(() => Array(nOfColumns).fill(initialisedValue));
 
@@ -240,112 +236,79 @@ const GridFactory = function () {
             })
         }
 
-        const generatePFGrid = function () {
-            let PFGrid = new PF.Grid(grid[0].length, grid.length);
+        const generatePFGrid = function (symbol, isVariable) {
+            const PFGrid = new PF.Grid(grid[0].length, grid.length);
+            let sharedPaths = isVariable ? pathsToVars[symbol] || [] : [];
+            sharedPaths = sharedPaths.flat().map((node) => JSON.stringify(node));
+            // console.log('\n\n');
+            // for (let y = 0; y < grid.length; y++) {
+            //     console.log(grid[y].map((cell, x) => {
+            //         if (sharedPaths.includes(JSON.stringify([x, y])) && isVariable) return symbol
+            //         else return cell
+            //     }).join(""))
+            // }
+
             for (let row = 0; row < grid.length; row++) {
-                for (let column = 0; column < grid.length; column++) {
-                    if ([' '].includes(grid[row][column])) {
-                        PFGrid.setWeightAt(column, row, 1)
-                    } else if (['─', '│', '#'].includes(grid[row][column])) {
-                        PFGrid.setWeightAt(column, row, PATH_WEIGHT)
-                    } else if (['┘', '┐', '┌', '└', '┤', '┴', '┬', '├'].includes(grid[row][column])) {
+                for (let column = 0; column < grid[0].length; column++) {
+                    const tile = grid[row][column];
+                    // next to a gate
+                    if (["║", "-", "╢", "[", "]"].concat(ALPHABET).includes(tile)) {
+                        PFGrid.setWalkableAt(column, row, false)
+                    } else if (
+                        ["║", "-", "╢", "[", "]"].concat(ALPHABET).includes((column > 0) ? grid[row][column - 1] : null) || ["║", "-", "╢", "[", "]"].concat(ALPHABET).includes((column < grid[0].length - 1) ? grid[row][column + 1] : null)
+                    ) {
+                        PFGrid.setWeightAt(column, row, 9)
+                    } else if (sharedPaths.includes(JSON.stringify([row, column]))) {
+                        PFGrid.setWeightAt(column, row, SHARED_PATH_WEIGHT)
+                    } else if (['┘', '┐', '┌', '└', '┤', '┴', '┬', '├'].includes(tile)) {
                         PFGrid.setWeightAt(column, row, PATH_CORNER_WEIGHT)
-                    } else if (["║", "-", "╢"].includes(grid[row][column])) {
-                        PFGrid.setWalkableAt(column, row, false)
-                    } else if (/^[A-Z]+$/.test(grid[row][column])) {
-                        PFGrid.setWalkableAt(column, row, false)
+                    } else if (['─', '│', '#'].includes(tile)) {
+                        PFGrid.setWeightAt(column, row, PATH_WEIGHT)
+                    } else {
+                        PFGrid.setWeightAt(column, row, 2)
                     }
                 }
             }
+            // for (let y = 0; y < grid.length; y++) {
+            //     console.log(grid[y].map((cell, x) => {
+            //         return PFGrid.getWeightAt(x, y)
+            //     }).join(''))
+            // }
+            // console.log('\n')
+            // grid.forEach((row) => {
+            //     console.log(row.join(''));
+            // })
+
             return PFGrid
         }
-
-        const findPath = function (logicGate) {
-            let paths = logicGate.getPathsToChildren(generatePFGrid())
-
-            let p = [];
-            paths.forEach(path => { // add to pathsToVars
-                if (path.isVariable) {
-                    if (!Object.keys(pathsToVars).includes(path.symbol)) {
-                        pathsToVars[path.symbol] = []
-                    }
-                    pathsToVars[path.symbol].push(path.path)
+        const addPathToSharedPath = function (path) {
+            // add to pathsToVars
+            if (path.isVariable) {
+                if (!Object.keys(pathsToVars).includes(path.symbol)) {
+                    pathsToVars[path.symbol] = []
                 }
-                p.push(path.path);
-            });
-            
-            return p;
-        }
-
-        const renderPath = function (path) {
-            directionalPath = [{step : {x : path[0][0], y : path[0][1]}, direction : 'left'}];
-
-            for (let i = 1; i < path.length - 1; i++) {
-                let step = {x : path[i][0], y : path[i][1]}
-                let nextStep = {x : path[i + 1][0], y : path[i + 1][1]}
-
-                if (step)
-                if (step.x < nextStep.x) {
-                    dir = 'right'
-                } else if (step.x > nextStep.x) {
-                    dir = 'left'
-                } else if (step.y < nextStep.y) {
-                    dir = 'down'
-                } else if (step.y > nextStep.y) {
-                    dir = 'up'
-                }
-
-                directionalPath.push({
-                    step : step, direction : dir
-                })
-            }
-            directionalPath.push({
-                step : {x : path[path.length - 1][0], y : path[path.length - 1][1]}, direction : 'left'
-            })
-            for (let i = 1; i < path.length; i++) {
-                let dirs = directionalPath[i - 1].direction + directionalPath[i].direction
-                console.log(dirs)
-                if (dirs === 'rightright' || dirs ===  'leftleft') {
-                    grid[path[i][1]][path[i][0]] = '─'
-                } else if (dirs === 'rightup' || dirs === 'downleft') {
-                    grid[path[i][1]][path[i][0]] = '┘'
-                }
-                else if (dirs === 'rightdown' || dirs === 'upleft') {
-                    grid[path[i][1]][path[i][0]] = '┐'
-                }
-                else if (dirs === 'upright' || dirs === 'leftdown') {
-                    grid[path[i][1]][path[i][0]] = '┌'
-                }
-                else if (dirs === 'downright' || dirs === 'leftup') {
-                    grid[path[i][1]][path[i][0]] = '└'
-                }
-                else if (dirs === 'upup' || dirs === 'downdown') {
-                    grid[path[i][1]][path[i][0]] = '│'
-                }
-                // ┘
-                // ┐
-                // ┌
-                // └
-                // │
-                // ─
+                pathsToVars[path.symbol].push(path.path)
             }
         }
 
         const _drawPaths = function (logicGate) {
-            // logicGate.children.forEach((child) => {
-            //     _drawPaths(child)
-            // });
-
             logicGate.children.forEach((child) => {
-                _drawPaths(child)
-            })
-            let paths = findPath(logicGate);
-            paths.forEach(path => {
-                renderPath(path)
+                if (!child.getIsVariable()) {
+                    _drawPaths(child);
+                }
             });
-            
+            logicGate.children.forEach((child, i) => {
+                const path = logicGate.getPathsToChildren(generatePFGrid, child, i);
+                Render.render(
+                    path.path,
+                    grid,
+                    (path.isVariable ? pathsToVars[path.symbol] || [] : [])
+                    .flat()
+                    .map((node) => JSON.stringify(node))
+                )
+                addPathToSharedPath(path)
+            })
         }
-
         return {
             placeSymbols: () => {
                 return _placeSymbols(logicTree)
@@ -464,4 +427,11 @@ const getLogicDiagram = function (input, spacing) {
     grid.drawPaths();
     grid.debugPrintGrid();
 }
+let LogicGate;
+
+// LogicGate = LogicGateFactory();
+// getLogicDiagram('((A AND A) AND (A AND A)) AND A', 5); // check how this is handling inputs : A AND A AND A AND A AND A
+LogicGate = LogicGateFactory();
 getLogicDiagram('(A AND B AND NOT B) OR C AND B XNOR D', 5);
+// LogicGate = LogicGateFactory();
+// getLogicDiagram('A AND B AND NOT B', 5);
