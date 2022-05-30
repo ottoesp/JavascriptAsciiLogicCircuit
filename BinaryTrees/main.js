@@ -120,18 +120,18 @@ exports.randList = function (start, end, NumberOfValues) {
   return output;
 }
 
-function parseGrid(grid){
-    let g = grid.reverse()
-    for (let i = 0; i < g.length; i++){
-        for (let j = 0; j < g[i].length; j++) {
-            if (g[i][j] === " ") {
-                g[i][j] = "&nbsp"
-            } 
-        }
-        g[i] = g[i].join("")
+function parseGrid(grid) {
+  let g = grid.reverse()
+  for (let i = 0; i < g.length; i++) {
+    for (let j = 0; j < g[i].length; j++) {
+      if (g[i][j] === " ") {
+        g[i][j] = "&nbsp"
+      }
     }
-    g = g.join("\n")
-    return g
+    g[i] = g[i].join("")
+  }
+  g = g.join("\n")
+  return g
 }
 
 function placeObjectInTree(val, tree, row) {
@@ -194,9 +194,11 @@ function findBoardHeight() {
 function boardHeightRecur(depth) {
   if (depth === 3) {
     return 5;
-  } if (depth === 2) {
+  }
+  if (depth === 2) {
     return 2;
-  } if (depth === 1) {
+  }
+  if (depth === 1) {
     return 1;
   }
   return boardHeightRecur(depth - 1) + 3
@@ -213,7 +215,7 @@ function createGrid(width, height) {
   return grid;
 }
 
-function parseInp (inp) {
+function parseInp(inp) {
   inp = inp.split(/[ ,]+/).map(function (item) {
     return parseInt(item)
   })
@@ -224,7 +226,9 @@ exports.start = function (inp, bal) {
   inp = parseInp(inp)
   console.log(inp)
   if (bal) {
-    inp = balance(inp.sort(function (a, b) { return a - b }))
+    inp = balance(inp.sort(function (a, b) {
+      return a - b
+    }))
   }
   console.log(inp)
   depthSizes = []
@@ -264,7 +268,6 @@ balance = function (arr) {
     // console.log(left, right)
     return right.concat(left)
   } else {
-    return arr 
-    }
+    return arr
+  }
 }
-
