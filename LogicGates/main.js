@@ -27,8 +27,7 @@ const GATE_STRING_CHARACTERS = {
 const LogicGateFactory = function () {
     let maxDepth = 0;
     let maxX = 0;
-    let placedVars = {};
-    const abstractPositioning = [];
+    let variableYVals = {};
 
     const finder = new PF.AStarFinder({
         heuristic: PF.Heuristic.manhattan
@@ -109,7 +108,7 @@ const LogicGateFactory = function () {
                 return coordinates
             },
 
-            generateXValue: () => {
+            assignXValue: () => {
                 if (!isVariable) {
                     const inverseDepth = maxDepth - depth;
                     const x = (
@@ -125,41 +124,26 @@ const LogicGateFactory = function () {
                 // is otherwise a variable
                 coordinates.x = 0;
             },
-            generateYValue: () => {
+            assignYValue: (widthAtEachDepth, spaceAtEachDepth) => {
+                const calculateY = function (d) {
+                    const h = (maxDepth - 1) * (VERT_SPACING + 2) + 2;
+                    const r = (widthAtEachDepth[d] - 1) * (VERT_SPACING + 2) + 2;
+                    const offset = Math.floor((h - r)/2);
+                    const s = spaceAtEachDepth[d] - 1
+                    const y = offset + s * (VERT_SPACING + 2);
+                    console.table({h, r, offset, s, y, symbol})
+                    return y;
+                }
                 if (isVariable) {
-                    if (Object.keys(placedVars).includes(symbol)) {
-                        coordinates.y = placedVars[symbol].y
-                        return
+                    if (variableYVals[symbol] === undefined) {
+                        variableYVals[symbol] = calculateY(0); //BREAKPOINT 
+                        spaceAtEachDepth[0]--;
                     }
-                    let y = VERT_SPACING * (abstractPositioning[maxDepth] || 0);
-                    placedVars[symbol] = {
-                        y: y
-                    };
-                    abstractPositioning[maxDepth] = (abstractPositioning[maxDepth] || 0) + 1;
-                    coordinates.y = y
+                    coordinates.y = variableYVals[symbol];
                 } else {
-                    let y = VERT_SPACING * (abstractPositioning[depth] || 0);
-                    abstractPositioning[depth] = (abstractPositioning[depth] || 0) + 1;
-                    coordinates.y = y
+                    coordinates.y = calculateY(maxDepth - depth);
+                    spaceAtEachDepth[maxDepth - depth]--;
                 }
-            },
-            centreYFactor: () => {
-                const widestDepthSize = max(abstractPositioning);
-                const depthSize = abstractPositioning[depth];
-                if (isVariable) {
-                    if (placedVars[symbol].centred !== undefined) {
-                        coordinates.y = placedVars[symbol].centred;
-                    } else {
-                        placedVars[symbol].centred = Math.floor(((widestDepthSize - depthSize) / 2) * VERT_SPACING);
-                    }
-                    return
-                }
-                // console.log(`symbol: ${symbol}, ${coordinates.y}, ${Math.floor(((widestDepthSize - depthSize) / 2) * VERT_SPACING)}`)
-                coordinates.y += Math.floor(((widestDepthSize - depthSize) / 2) * VERT_SPACING);
-            },
-
-            getAbstractPositioning: () => {
-                return abstractPositioning;
             },
 
             getMaxDepth: () => {
@@ -173,8 +157,7 @@ const LogicGateFactory = function () {
             resetClassVariables: () => {
                 maxDepth = 0;
                 maxX = 0;
-                placedVars = {};
-                abstractPositioning = [];
+                variableYVals = {};
             },
 
             getOutput: () => {
@@ -213,8 +196,8 @@ const GridFactory = function () {
     const PATH_WEIGHT = 3;
     const SHARED_PATH_WEIGHT = 0;
 
-    return (logicTree, initialisedValue = ' ') => {
-        const nOfRows = (max(logicTree.getAbstractPositioning()) + 1) * VERT_SPACING;
+    return (logicTree, initialisedValue = ' ') => { // CHANGING THE INITVAL SHOULDNT CAUSE ERROR???
+        const nOfRows = (Math.max(...getWidthAtEachDepth(logicTree)) - 1) * (VERT_SPACING + 2) + 2;
         const nOfColumns = logicTree.getMaxX() + GATE_WIDTH;
         let pathsToVars = {};
 
@@ -244,7 +227,7 @@ const GridFactory = function () {
             let PFGrid = new PF.Grid(grid[0].length, grid.length);
             for (let row = 0; row < grid.length; row++) {
                 for (let column = 0; column < grid.length; column++) {
-                    if ([' '].includes(grid[row][column])) {
+                    if ([initialisedValue].includes(grid[row][column])) {
                         PFGrid.setWeightAt(column, row, 1)
                     } else if (['─', '│', '#'].includes(grid[row][column])) {
                         PFGrid.setWeightAt(column, row, PATH_WEIGHT)
@@ -304,7 +287,6 @@ const GridFactory = function () {
             })
             for (let i = 1; i < path.length; i++) {
                 let dirs = directionalPath[i - 1].direction + directionalPath[i].direction
-                console.log(dirs)
                 if (dirs === 'rightright' || dirs ===  'leftleft') {
                     grid[path[i][1]][path[i][0]] = '─'
                 } else if (dirs === 'rightup' || dirs === 'downleft') {
@@ -436,32 +418,52 @@ const interperetInput = function (input) {
     input = input.replace(/\s{2,}/g, ' ').trim().toUpperCase();
     return stringToLogicGate(input);
 }
-const assignCoordinates = function (logicGate) {
-    logicGate.generateXValue()
-    logicGate.generateYValue();
+const assignCoordinates = function (logicGate, widthAtEachDepth, spaceAtEachDepth) {
+    logicGate.assignXValue()
+    logicGate.assignYValue(widthAtEachDepth, spaceAtEachDepth);
     logicGate.children.forEach(child => {
-        assignCoordinates(child);
+        assignCoordinates(child, widthAtEachDepth, spaceAtEachDepth);
     });
 }
-const centreYValues = function (logicGate) {
-    logicGate.centreYFactor();
-    logicGate.children.forEach(child => {
-        centreYValues(child);
-    });
+
+
+const getWidthAtEachDepth = function (lt) {
+    const placedVars = {};
+    const maxDepth = lt.getMaxDepth();
+    const widthAtEachDepth = new Array(maxDepth + 1).fill(0);
+    const recurDepthWidth = function (depth, lg) {
+        if (lg.getIsVariable()) {
+            if (placedVars[lg.getSymbol()] === undefined) {
+                widthAtEachDepth[0]++;
+            }
+            placedVars[lg.getSymbol()] = true;
+        } else widthAtEachDepth[depth]++;
+        lg.children.forEach(child => {
+            recurDepthWidth(depth - 1, child);
+        })
+    }
+    recurDepthWidth(maxDepth, lt);
+    return widthAtEachDepth;
 }
 
 const getLogicDiagram = function (input, spacing) {
     HORZ_SPACING = spacing;
-    VERT_SPACING = 4;
+    VERT_SPACING = 3;
 
-    let logicTree = interperetInput(input);
-    assignCoordinates(logicTree);
-    logicTree.generatePlaceableSymbol();
-    centreYValues(logicTree);
+    const logicTree = interperetInput(input);
+
+    const widthAtEachDepth = getWidthAtEachDepth(logicTree);
+    assignCoordinates(logicTree, widthAtEachDepth, clone(widthAtEachDepth));
+    function foo (lg) {
+        lg.children.forEach(child => foo(child))
+    }
+    foo(logicTree)
+    logicTree.generatePlaceableSymbol(); // NOTE this is weird but sure
 
     const grid = Grid(logicTree);
     grid.placeSymbols(logicTree);
     grid.drawPaths();
     grid.debugPrintGrid();
 }
+// getLogicDiagram('(A AND B) OR (C XOR A) OR C', 5);
 getLogicDiagram('(A AND B AND NOT B) OR C AND B XNOR D', 5);
