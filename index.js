@@ -1,9 +1,9 @@
-const express = require('express');
-const cors = require('cors')
-const bodyParser = require('body-parser');
-const fs = require('fs');
-const app = express();
-const main = require('./LogicGates/main')
+// const express = require('express');
+// const cors = require('cors')
+// const bodyParser = require('body-parser');
+// const fs = require('fs');
+// const app = express();
+const { getLogicDiagram } = require('./LogicGates/main')
 // const tree = require('./BinaryTrees/treeMain')
 
 // app.use(bodyParser.json());
@@ -25,4 +25,5 @@ const main = require('./LogicGates/main')
 
 // app.listen(3000, () => console.log('server started'));
 
-console.log(main.start("A OR B AND NOT C", 15));
+console.log(getLogicDiagram('(NOT B AND B AND NOT A) OR C AND B XNOR D'));
+console.log(getLogicDiagram('(NOT B AND B AND NOT A) AND B XNOR D', 5));
