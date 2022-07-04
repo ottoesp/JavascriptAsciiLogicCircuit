@@ -9,10 +9,10 @@ function findDistanceFromParentNode(row) {
 
 function Node(value, row) {
   let value = value;
-  this.right = false;
-  this.left = false;
-  this.x = false;
-  this.y = false;
+  this.right = null;
+  this.left = null;
+  this.x = null;
+  this.y = null;
   this.row = row;
 
   this.getValue = function () {
@@ -20,35 +20,31 @@ function Node(value, row) {
   }
 
   this.flipRows = function () {
-    if (this.right !== false) {
+    if (this.right !== null) {
       this.right.flipRows()
     }
-    if (this.left !== false) {
+    if (this.left !== null) {
       this.left.flipRows()
     }
     this.row = depthSizes.length - this.row;
   }
   this.assignDistanceToParent = function () {
-    if (this.right !== false) {
+    if (this.right !== null) {
       this.right.assignDistanceToParent()
     }
-    if (this.left !== false) {
+    if (this.left !== null) {
       this.left.assignDistanceToParent()
     }
     this.distance2PN = findDistanceFromParentNode(this.row);
   }
   this.assignYValues = function (gridHeight) {
-    if (this.right !== false) {
+    if (this.right !== null) {
       this.right.assignYValues()
     }
-    if (this.left !== false) {
+    if (this.left !== null) {
       this.left.assignYValues()
     }
-    if (this.row === 1) {
-      this.y = 0
-    } else {
-      this.y = 2 + 3 * (this.row - 2)
-    }
+    this.y = this.row === 1 ? 0 : 2 + 3 * (this.row - 2);
   }
   this.assignXValues = function (stem, boardWidth) {
     if (stem) {
@@ -232,22 +228,22 @@ exports.start = function (inp, bal) {
   }
   console.log(inp)
   depthSizes = []
-  let tree = createObjectTree(inp);
-  findDepthSizes(tree, 0);
-  tree.flipRows()
-  tree.assignDistanceToParent()
+  let root = createObjectTree(inp);
+  findDepthSizes(root, 0);
+  root.flipRows()
+  root.assignDistanceToParent()
   const boardWidth = findBoardWidth();
   const boardHeight = findBoardHeight();
-  tree.assignYValues(boardHeight)
-  tree.assignXValues(true, boardWidth)
+  root.assignYValues(boardHeight)
+  root.assignXValues(true, boardWidth)
   let grid = createGrid(boardWidth, boardHeight);
-  tree.place(grid)
+  root.place(grid)
   opt = parseGrid(grid)
   console.log(opt)
   return opt
 }
 
-balance = function (arr) {
+balance = function (arr) { // Broken
   depthSizes = []
   if (arr.length > 1) {
     let middleIndex = Math.floor(arr.length / 2)
