@@ -8,11 +8,10 @@ function findDistanceFromParentNode(row) {
 }
 
 function Node(value, row) {
-  let value = value;
-  this.right = false;
-  this.left = false;
-  this.x = false;
-  this.y = false;
+  this.right = null;
+  this.left = null;
+  this.x = null;
+  this.y = null;
   this.row = row;
 
   this.getValue = function () {
@@ -20,35 +19,31 @@ function Node(value, row) {
   }
 
   this.flipRows = function () {
-    if (this.right !== false) {
+    if (this.right !== null) {
       this.right.flipRows()
     }
-    if (this.left !== false) {
+    if (this.left !== null) {
       this.left.flipRows()
     }
     this.row = depthSizes.length - this.row;
   }
   this.assignDistanceToParent = function () {
-    if (this.right !== false) {
+    if (this.right !== null) {
       this.right.assignDistanceToParent()
     }
-    if (this.left !== false) {
+    if (this.left !== null) {
       this.left.assignDistanceToParent()
     }
     this.distance2PN = findDistanceFromParentNode(this.row);
   }
   this.assignYValues = function (gridHeight) {
-    if (this.right !== false) {
+    if (this.right !== null) {
       this.right.assignYValues()
     }
-    if (this.left !== false) {
+    if (this.left !== null) {
       this.left.assignYValues()
     }
-    if (this.row === 1) {
-      this.y = 0
-    } else {
-      this.y = 2 + 3 * (this.row - 2)
-    }
+    this.y = this.row === 1 ? 0 : 2 + 3 * (this.row - 2);
   }
   this.assignXValues = function (stem, boardWidth) {
     if (stem) {
@@ -112,26 +107,26 @@ function Node(value, row) {
 }
 
 
-exports.randList = function (start, end, NumberOfValues) {
-  let output = [];
-  for (let i = 0; i < NumberOfValues; i++) {
-    output.push(Math.floor(Math.random() * (end - start)) + start);
-  }
-  return output;
-}
+// exports.randList = function (start, end, NumberOfValues) {
+//   let output = [];
+//   for (let i = 0; i < NumberOfValues; i++) {
+//     output.push(Math.floor(Math.random() * (end - start)) + start);
+//   }
+//   return output;
+// }
 
-function parseGrid(grid){
-    let g = grid.reverse()
-    for (let i = 0; i < g.length; i++){
-        for (let j = 0; j < g[i].length; j++) {
-            if (g[i][j] === " ") {
-                g[i][j] = "&nbsp"
-            } 
-        }
-        g[i] = g[i].join("")
+function parseGrid(grid) {
+  let g = grid.reverse()
+  for (let i = 0; i < g.length; i++) {
+    for (let j = 0; j < g[i].length; j++) {
+      if (g[i][j] === " ") {
+        g[i][j] = "&nbsp"
+      }
     }
-    g = g.join("\n")
-    return g
+    g[i] = g[i].join("")
+  }
+  g = g.join("\n")
+  return g
 }
 
 function placeObjectInTree(val, tree, row) {
@@ -194,9 +189,11 @@ function findBoardHeight() {
 function boardHeightRecur(depth) {
   if (depth === 3) {
     return 5;
-  } if (depth === 2) {
+  }
+  if (depth === 2) {
     return 2;
-  } if (depth === 1) {
+  }
+  if (depth === 1) {
     return 1;
   }
   return boardHeightRecur(depth - 1) + 3
@@ -213,58 +210,53 @@ function createGrid(width, height) {
   return grid;
 }
 
-function parseInp (inp) {
+function parseInp(inp) {
   inp = inp.split(/[ ,]+/).map(function (item) {
     return parseInt(item)
   })
   return inp
 }
 
-exports.start = function (inp, bal) {
+getBinaryTree = function (inp) {
   inp = parseInp(inp)
-  console.log(inp)
-  if (bal) {
-    inp = balance(inp.sort(function (a, b) { return a - b }))
-  }
-  console.log(inp)
   depthSizes = []
-  let tree = createObjectTree(inp);
-  findDepthSizes(tree, 0);
-  tree.flipRows()
-  tree.assignDistanceToParent()
+  let root = createObjectTree(inp);
+  findDepthSizes(root, 0);
+  root.flipRows()
+  root.assignDistanceToParent()
   const boardWidth = findBoardWidth();
   const boardHeight = findBoardHeight();
-  tree.assignYValues(boardHeight)
-  tree.assignXValues(true, boardWidth)
+  root.assignYValues(boardHeight)
+  root.assignXValues(true, boardWidth)
   let grid = createGrid(boardWidth, boardHeight);
-  tree.place(grid)
+  root.place(grid)
   opt = parseGrid(grid)
   console.log(opt)
   return opt
 }
 
-balance = function (arr) {
-  depthSizes = []
-  if (arr.length > 1) {
-    let middleIndex = Math.floor(arr.length / 2)
-    let temp = arr[middleIndex]
-    arr.splice(middleIndex, 1)
-    arr.splice(0, 0, temp)
-    let left = []
-    let right = []
-    for (let i = 0; i < arr.length; i++) {
-      if (i < middleIndex) {
-        left.push(arr[i])
-      } else {
-        right.push(arr[i])
-      }
-    }
-    left = balance(left)
-    right = balance(right)
-    // console.log(left, right)
-    return right.concat(left)
-  } else {
-    return arr 
-    }
-}
-
+getBinaryTree('[1, 3, 2, 5]')
+// balance = function (arr) { // Broken
+//   depthSizes = []
+//   if (arr.length > 1) {
+//     let middleIndex = Math.floor(arr.length / 2)
+//     let temp = arr[middleIndex]
+//     arr.splice(middleIndex, 1)
+//     arr.splice(0, 0, temp)
+//     let left = []
+//     let right = []
+//     for (let i = 0; i < arr.length; i++) {
+//       if (i < middleIndex) {
+//         left.push(arr[i])
+//       } else {
+//         right.push(arr[i])
+//       }
+//     }
+//     left = balance(left)
+//     right = balance(right)
+//     // console.log(left, right)
+//     return right.concat(left)
+//   } else {
+//     return arr
+//   }
+// }
