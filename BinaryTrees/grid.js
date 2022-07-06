@@ -2,7 +2,7 @@ const fGrid = function () {
     return (root) => {
         const maxX = 2**(root.maxDepth() + 2) - 2;
         const maxY = 3 * (root.maxDepth());
-        const grid = [...Array(maxY)].map(() => Array(maxX).fill(' '));
+        const grid = [...Array(maxY)].map(() => Array(maxX).fill('&nbsp'));
         
         const placeNodes = function (node = root) {
             const {x, y} = node.getCoordinates();
@@ -52,10 +52,15 @@ const fGrid = function () {
             })
         }
 
+        const outputGrid = function () {
+            return grid.map((row) => row.join("")).join("\n")
+        }
+
         return {
             placeNodes : placeNodes,
             printGrid : printGrid,
             drawPaths : drawPaths,
+            outputGrid : outputGrid,
         }
     }
 }

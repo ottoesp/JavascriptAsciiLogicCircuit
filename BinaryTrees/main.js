@@ -44,6 +44,6 @@ exports.getBinaryTree = function (str, balance) {
     const grid = Grid(root);
     grid.placeNodes();
     grid.drawPaths()
-    grid.printGrid()
+    return grid.outputGrid()
 }
 

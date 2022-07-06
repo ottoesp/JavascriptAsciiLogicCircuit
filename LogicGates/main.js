@@ -22,8 +22,7 @@ const getLogicDiagram = function (input) {
     grid.placeSymbols(root);
     grid.drawPaths();
     grid.drawOutput(input);
-    grid.debugPrintGrid();
-    return grid.getGrid();
+    return grid.outputGrid();
 }
 
 exports.getLogicDiagram = getLogicDiagram;
