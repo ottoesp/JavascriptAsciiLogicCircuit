@@ -11,7 +11,7 @@ const GridFactory = function () {
     const PATH_WEIGHT = 2;
     const SHARED_PATH_WEIGHT = 1;
 
-    return (root, whitespace = '&nbsp') => { 
+    return (root, whitespace = ' ') => { 
         const nOfRows = (Math.max(...getWidthAtEachDepth(root))) * (VERT_SPACING + 2) + 2;
         const nOfColumns = root.getMaxX() + 6; // + GateWidth
         const pathsToVars = {};
@@ -48,8 +48,8 @@ const GridFactory = function () {
                     // next to a gate
                     if (sharedPaths.includes(JSON.stringify([row, column]))) {
                         PFGrid.setWeightAt(column, row, SHARED_PATH_WEIGHT)
-                    } else if (["║", "-", "╢", "[", "]"].concat(ALPHABET).includes(tile)) {
-                        PFGrid.setWalkableAt(column, row, false)
+                    } else if (["║", "-", "╢", "[", "]"].concat(ALPHABET).includes(tile)) { // BREAKPOINT - probs worth working out whats actually happening
+                        PFGrid.setWeightAt(column, row, Infinity)
                     } else if (
                         ["║", "-", "╢", "[", "]"].concat(ALPHABET)
                             .includes((column > 0) ? grid[row][column - 1] : null) ||
@@ -89,7 +89,8 @@ const GridFactory = function () {
                 a = logicGate.children[0].coordinates().y < logicGate.children[0].coordinates().y ? 0 : 1;
             }
 
-            logicGate.children.forEach((child, i) => {
+            for (let i = 0; i < logicGate.children.length; i++) {
+                let child = logicGate.children[i];
                 const path = logicGate.getPathsToChildren(generatePFGrid, child, (a + i) % logicGate.children.length);
                 Render.render(
                     path.path,
@@ -99,7 +100,7 @@ const GridFactory = function () {
                     .map((node) => JSON.stringify(node))
                 )
                 addPathToSharedPath(path)
-            })
+            }
         }
         const drawOutput = function (input) {
             const y = root.getOutput().y;
