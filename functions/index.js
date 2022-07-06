@@ -2,7 +2,7 @@
 const functions = require('firebase-functions');
 
 const { getLogicDiagram } = require('C:/Users/ottoe/OneDrive/Documents/School/Subjects/ComputerScience/IA/Code/JavascriptAsciiLogicCircuit/LogicGates/main.js')
-// const { getBinaryTree } = require('C:/Users/ottoe/OneDrive/Documents/School/Subjects/ComputerScience/IA/Code/JavascriptAsciiLogicCircuit/BinaryTrees/main.js')
+const { getBinaryTree } = require('C:/Users/ottoe/OneDrive/Documents/School/Subjects/ComputerScience/IA/Code/JavascriptAsciiLogicCircuit/BinaryTrees/main.js')
 
 // The Firebase Admin SDK to access Firestore.
 const admin = require('firebase-admin');
@@ -21,10 +21,10 @@ exports.getGates = functions.https.onRequest(async (req, res) => {
 
 exports.getTree = functions.https.onRequest(async (req, res) => {
     // Grab the text parameter.
-    console.log('tree')
-    const inp = req.query.text;
+    const input = req.query.input;
+    const balance = req.query.input;
     // Send back a message that we've successfully written the message
     res.json({
-        // result: getBinaryTree(inp)
+        result: getBinaryTree(input, balance)
     });
 });

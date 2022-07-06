@@ -11,14 +11,14 @@ const GridFactory = function () {
     const PATH_WEIGHT = 2;
     const SHARED_PATH_WEIGHT = 1;
 
-    return (root, whitespace = ' ') => { 
+    return (root, whitespace = '&nbsp') => { 
         const nOfRows = (Math.max(...getWidthAtEachDepth(root))) * (VERT_SPACING + 2) + 2;
         const nOfColumns = root.getMaxX() + 6; // + GateWidth
         const pathsToVars = {};
 
         let grid = [...Array(nOfRows)].map(() => Array(nOfColumns).fill(whitespace));
 
-        const _placeSymbols = (lt) => {
+        const placeSymbols = (lt) => {
             const {
                 sym,
                 height,
@@ -34,7 +34,7 @@ const GridFactory = function () {
                 }
             }
             lt.children.forEach((child) => {
-                _placeSymbols(child);
+                placeSymbols(child);
             })
         }
 
@@ -102,16 +102,20 @@ const GridFactory = function () {
                 addPathToSharedPath(path)
             }
         }
+
         const drawOutput = function (input) {
             const y = root.getOutput().y;
             grid[y] = [...grid[y], "─", ...input.split("")];
         }
+
+        const outputGrid = function () {
+            return grid.map((row) => row.join("")).join("\n")
+        }
+
         return {
-            drawOutput: (input) => {
-                drawOutput(input)
-            },
+            drawOutput: drawOutput,
             placeSymbols: () => {
-                return _placeSymbols(root)
+                placeSymbols(root)
             },
             getGrid: () => {
                 return grid
@@ -123,7 +127,8 @@ const GridFactory = function () {
             },
             drawPaths: () => {
                 drawPaths(root);
-            }
+            },
+            outputGrid: outputGrid,
         }
     }
 }
