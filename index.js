@@ -1,29 +1,19 @@
-// const express = require('express');
-// const cors = require('cors')
-// const bodyParser = require('body-parser');
-// const fs = require('fs');
-// const app = express();
 const { getLogicDiagram } = require('./LogicGates/main')
-// const tree = require('./BinaryTrees/treeMain')
 
-// app.use(bodyParser.json());
-// app.use(bodyParser.urlencoded({ extended: true }));
-// app.use(express.static('public'));
+// Import the functions you need from the SDKs you need
+const { initializeApp } = require("firebase/app");
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyAVUGXcE_eN5b8Jddl1n1rAjnISsXrL0eo",
+  authDomain: "textdiagrams.firebaseapp.com",
+  projectId: "textdiagrams",
+  storageBucket: "textdiagrams.appspot.com",
+  messagingSenderId: "531881366628",
+  appId: "1:531881366628:web:156d7eb40344b998133b71"
+};
 
-// app.get('/api/logic-gates/:param1/:param2', cors(), (req, res) => {
-//   res.json({ x: main.start(req.params.param1, parseInt(req.params.param2)) });
-// });
-
-// app.get('/api/binary-trees/:param1/:param2', cors(), (req, res) => {
-//   res.json({ x: tree.start(req.params.param1, req.params.param2)});
-// });
-
-// app.get('/api/db/:param1/:param2', cors(), (req, res) => {
-//   res.send("ADDED TO DATABASE");
-// });
-
-// app.listen(3000, () => console.log('server started'));
-
-console.log(getLogicDiagram('(NOT B AND B AND NOT A) OR C AND B XNOR D'));
-console.log(getLogicDiagram('(NOT B AND B AND NOT A) AND B XNOR D', 5));
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);

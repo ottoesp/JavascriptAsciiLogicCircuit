@@ -39,8 +39,6 @@ exports.LogicGateFactory = function () {
 
         input = undefined
 
-
-
         return {
             getSymbol: () => {
                 return symbol
@@ -114,11 +112,12 @@ exports.LogicGateFactory = function () {
             },
             assignYValue: (widthAtEachDepth, spaceAtEachDepth) => {
                 const calculateY = function (d) {
-                    const h = (maxDepth - 1) * (VERT_SPACING + 2) + 2;
+                    const h = (maxDepth) * (VERT_SPACING + 2) + 2; // was (maxDepth - 1)
                     const r = (widthAtEachDepth[d] - 1) * (VERT_SPACING + 2) + 2;
                     const offset = Math.floor((h - r)/2);
                     const s = spaceAtEachDepth[d] - 1
                     const y = offset + s * (VERT_SPACING + 2);
+                    // console.table({h, r, offset, s, y})
                     return y;
                 }
                 if (isVariable) {
@@ -165,7 +164,6 @@ exports.LogicGateFactory = function () {
                     y: coordinates.y + i
                 }
                 const grid = PFGrid(child.getSymbol(), child.getIsVariable());
-
                 const path = finder.findPath(input.x, input.y, childOutput.x, childOutput.y, grid);
                 return {
                     path: path,

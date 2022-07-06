@@ -8,7 +8,6 @@ function findDistanceFromParentNode(row) {
 }
 
 function Node(value, row) {
-  let value = value;
   this.right = null;
   this.left = null;
   this.x = null;
@@ -108,13 +107,13 @@ function Node(value, row) {
 }
 
 
-exports.randList = function (start, end, NumberOfValues) {
-  let output = [];
-  for (let i = 0; i < NumberOfValues; i++) {
-    output.push(Math.floor(Math.random() * (end - start)) + start);
-  }
-  return output;
-}
+// exports.randList = function (start, end, NumberOfValues) {
+//   let output = [];
+//   for (let i = 0; i < NumberOfValues; i++) {
+//     output.push(Math.floor(Math.random() * (end - start)) + start);
+//   }
+//   return output;
+// }
 
 function parseGrid(grid) {
   let g = grid.reverse()
@@ -218,15 +217,8 @@ function parseInp(inp) {
   return inp
 }
 
-exports.start = function (inp, bal) {
+getBinaryTree = function (inp) {
   inp = parseInp(inp)
-  console.log(inp)
-  if (bal) {
-    inp = balance(inp.sort(function (a, b) {
-      return a - b
-    }))
-  }
-  console.log(inp)
   depthSizes = []
   let root = createObjectTree(inp);
   findDepthSizes(root, 0);
@@ -243,27 +235,28 @@ exports.start = function (inp, bal) {
   return opt
 }
 
-balance = function (arr) { // Broken
-  depthSizes = []
-  if (arr.length > 1) {
-    let middleIndex = Math.floor(arr.length / 2)
-    let temp = arr[middleIndex]
-    arr.splice(middleIndex, 1)
-    arr.splice(0, 0, temp)
-    let left = []
-    let right = []
-    for (let i = 0; i < arr.length; i++) {
-      if (i < middleIndex) {
-        left.push(arr[i])
-      } else {
-        right.push(arr[i])
-      }
-    }
-    left = balance(left)
-    right = balance(right)
-    // console.log(left, right)
-    return right.concat(left)
-  } else {
-    return arr
-  }
-}
+getBinaryTree('[1, 3, 2, 5]')
+// balance = function (arr) { // Broken
+//   depthSizes = []
+//   if (arr.length > 1) {
+//     let middleIndex = Math.floor(arr.length / 2)
+//     let temp = arr[middleIndex]
+//     arr.splice(middleIndex, 1)
+//     arr.splice(0, 0, temp)
+//     let left = []
+//     let right = []
+//     for (let i = 0; i < arr.length; i++) {
+//       if (i < middleIndex) {
+//         left.push(arr[i])
+//       } else {
+//         right.push(arr[i])
+//       }
+//     }
+//     left = balance(left)
+//     right = balance(right)
+//     // console.log(left, right)
+//     return right.concat(left)
+//   } else {
+//     return arr
+//   }
+// }
