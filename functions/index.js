@@ -21,10 +21,10 @@ exports.getGates = functions.https.onRequest(async (req, res) => {
 
 exports.getTree = functions.https.onRequest(async (req, res) => {
     // Grab the text parameter.
-    const input = req.query.input;
-    const balance = req.query.input;
+    const input = JSON.parse(req.query.input);
+    const balance = JSON.parse(req.query.balance);
     // Send back a message that we've successfully written the message
     res.json({
-        result: getBinaryTree(input, balance)
+        result: getBinaryTree(input, balance),
     });
 });

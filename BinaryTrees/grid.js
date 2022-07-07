@@ -2,7 +2,7 @@ const fGrid = function () {
     return (root) => {
         const maxX = 2**(root.maxDepth() + 2) - 2;
         const maxY = 3 * (root.maxDepth());
-        const grid = [...Array(maxY)].map(() => Array(maxX).fill('&nbsp'));
+        const grid = [...Array(maxY)].map(() => Array(maxX).fill(' '));
         
         const placeNodes = function (node = root) {
             const {x, y} = node.getCoordinates();

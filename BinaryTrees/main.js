@@ -34,8 +34,8 @@ const balanceInput = function (arr) {
     return output;
 }
 
-exports.getBinaryTree = function (str, balance) {
-    let arr = JSON.parse(str);
+exports.getBinaryTree = function (arr, balance) {
+    console.log(arr, balance)
     if (balance) {
         arr = balanceInput(arr);
     }
