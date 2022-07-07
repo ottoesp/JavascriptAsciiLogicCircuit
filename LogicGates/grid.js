@@ -11,7 +11,7 @@ const GridFactory = function () {
     const PATH_WEIGHT = 2;
     const SHARED_PATH_WEIGHT = 1;
 
-    return (root, whitespace = '&nbsp') => { 
+    return (root, whitespace = ' ') => { 
         const nOfRows = (Math.max(...getWidthAtEachDepth(root))) * (VERT_SPACING + 2) + 2;
         const nOfColumns = root.getMaxX() + 6; // + GateWidth
         const pathsToVars = {};
